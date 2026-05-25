@@ -1,0 +1,36 @@
+[project]
+name = "cipher-pol-poc"
+version = "0.1.0"
+description = "Mechanistic interpretability of Poseidon neural operator"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # pin to match scOT exactly — these transitively control the whole stack
+    "torch==2.0.1",
+    "torchvision==0.15.2",
+    # numpy 2.x is ABI-incompatible with torch 2.0.1 wheels
+    "numpy>=1.24,<2.0",
+    # transformers 4.29.2 (scOT pin) requires huggingface-hub<1.0
+    "huggingface-hub[cli]>=0.14.1,<1.0",
+    # data i/o
+    "h5py>=3.9",
+    "pandas>=2.0",
+    "pyyaml>=6.0",
+    # probes + physical diagnostics (Sessions 4-7)
+    "scikit-learn>=1.3",
+    "scipy>=1.11",
+    # visualisation
+    "matplotlib>=3.7",
+    # utilities
+    "tqdm>=4.65",
+    # local poseidon package (brings in transformers, accelerate, wandb, h5py)
+    "scOT",
+    "xarray>=2026.4.0",
+    "netcdf4>=1.7.3",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+scOT = { path = "../poseidon", editable = true }

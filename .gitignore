@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+## Custom
+data/pdegym/ns_sines/
+data/visc_sweep_v2/
+data/labels.npz

@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /Users/colejohnston/Documents/python/cipher-pol-poc/data/pdegym/ 2>/dev/null && echo \"---\" && ls ~/data/pdegym/ns_sines/ 2>/dev/null | head -20 && echo \"---\" && ls /Users/colejohnston/Documents/python/cipher-pol-poc/scripts/)",
+      "Read(//Users/colejohnston/data/pdegym/ns_sines/**)",
+      "Bash(uv run python -c ' *)",
+      "Bash(uv add *)",
+      "Bash(xargs '-I{}' uv run python -c ' *)",
+      "Bash(uv run *)",
+      "Bash(find ~/envs -name activate 2>/dev/null | head -5; ls ~/.venv 2>/dev/null || true; cat /Users/colejohnston/Documents/python/cipher-pol-poc/.python-version 2>/dev/null || true; cat /Users/colejohnston/Documents/python/cipher-pol-poc/pyproject.toml 2>/dev/null | head -40)",
+      "Read(//Users/colejohnston/**)",
+      "Bash(mkdir -p /Users/colejohnston/.claude/projects/-Users-colejohnston-Documents-python-cipher-pol-poc/memory/)"
+    ],
+    "additionalDirectories": [
+      "/Users/colejohnston/.claude/projects/-Users-colejohnston-Documents-python-cipher-pol-poc/memory"
+    ]
+  }
+}

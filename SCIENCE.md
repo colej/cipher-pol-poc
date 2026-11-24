@@ -1,6 +1,6 @@
-# SCIENCE.md — physical definitions and label conventions
+# SCIENCE.md — Setup, physical definitions, and label conventions
 
-Read before writing any probe, SAE, or label code.
+For our experiments, we the NS-Sines dataset
 
 ## Dataset: NS-Sines
 
@@ -24,10 +24,56 @@ Read before writing any probe, SAE, or label code.
 At Re_c = 847, the empirical turbulent fraction across all 500 trajectories is **0.455**
 (within the required 0.20–0.50 window).
 
+
 ## Label definitions
 
 All labels are computed per spatial location (x,y), per timestep t, per trajectory.
 Shape: `(N=500, T=21, H=128, W=128)`. Stored in `data/labels.npz`.
+
+
+## Equation & terms
+
+The terms, from first principles
+
+On the periodic unit square:
+
+$$\partial_t \mathbf{u} + (\mathbf{u}\cdot\nabla)\mathbf{u} + \nabla p = B(\mathbf{u}), \qquad \nabla\cdot\mathbf{u} = 0.$$
+
+In NS-Sines the dissipative term is spectral viscosity (Herde et al., 2024, App. B):
+
+$$B(\mathbf{u}) = \varepsilon_N\,\Delta(Q_N * \mathbf{u}), \qquad \hat B(\mathbf{k}) = -\varepsilon_N\,|2\pi\mathbf{k}|^2\,\hat Q_N(\mathbf{k})\,\hat{\mathbf{u}}(\mathbf{k}),$$
+
+with $\varepsilon_N = 0.05/N$, $N = 128$, and $\hat Q_N(\mathbf{k}) = 0$ for $|\mathbf{k}| \le m_N = \sqrt N$, smooth above. The exact form and parameters of $\hat Q_N$, and the wavenumber convention for the cutoff, are unverified and must come from the AZEBAN solver code.
+
+Eliminating pressure
+
+Write $N(\mathbf{u}) = -(\mathbf{u}\cdot\nabla)\mathbf{u}$, so $\partial_t\mathbf{u} = N - \nabla p + B$.
+
+$B$ preserves incompressibility: $\mathbf{k}\cdot\hat B = -\varepsilon_N|2\pi\mathbf{k}|^2\hat Q_N\,(\mathbf{k}\cdot\hat{\mathbf{u}}) = 0$.
+Take the divergence of the momentum equation. $\nabla\cdot\partial_t\mathbf{u} = 0$ and $\nabla\cdot B = 0$, so $\Delta p = \nabla\cdot N$.
+In Fourier space, $-|\mathbf{k}|^2\hat p = i\mathbf{k}\cdot\hat N$, so $\hat p = -i\,\mathbf{k}\cdot\hat N/|\mathbf{k}|^2$ and $\widehat{\nabla p} = i\mathbf{k}\hat p = \frac{\mathbf{k}\mathbf{k}^\top}{|\mathbf{k}|^2}\hat N = (I - \hat P)\hat N$, where $\hat P(\mathbf{k}) = I - \mathbf{k}\mathbf{k}^\top/|\mathbf{k}|^2$ is the Leray projector.
+Zero mode: $\hat N(\mathbf{0}) = -\langle \nabla\cdot(\mathbf{u}\otimes\mathbf{u})\rangle = 0$ on a periodic domain, so set $\hat P(\mathbf{0}) = I$.
+
+Therefore
+
+$$\partial_t\mathbf{u} = \underbrace{PN(\mathbf{u})}_{A:\ \text{projected advection}} + \underbrace{B(\mathbf{u})}_{B:\ \text{spectral dissipation}}.$$
+
+Both are computable from $\mathbf{u}$ with FFTs. Agreement with the generating solver also depends on its truncation, dealiasing and conventions (unverified).
+
+Short-time tendency
+
+For the true solution operator $\mathcal S_t$: $\mathcal S_t(\mathbf{u}) = \mathbf{u} + t\,[A + B] + O(t^2)$. Write the model as $f_\theta = \mathcal S_t + \epsilon_\theta$. Then
+
+$$g_\theta(\mathbf{u},t) := \frac{f_\theta(\mathbf{u},t) - \mathbf{u}}{t} = A + B + O(t) + \frac{\epsilon_\theta(\mathbf{u},t)}{t}.$$
+
+Shorter $t$ shrinks the $O(t)$ term but amplifies model error. NS-Sines has 21 snapshots on $[0,1]$, so the shortest training lead time is 0.05. A rough estimate puts the fastest initial dynamical timescale at the same order, so the $O(t)$ term may not be small. Step 0 measures it.
+
+Conventions
+All diagnostics on denormalised velocity and physical lead time. $A$ is quadratic, so normalisation would otherwise be absorbed into the coefficients.
+The loader normalises time as t / constants["time"]. Confirm that model time equals physical time before comparing coefficients with (1, 1).
+Regressions use the velocity output channels only (the pressure channel is masked).
+Split and bootstrap by trajectory, not by snapshot.
+
 
 ### Velocity components
 ```
